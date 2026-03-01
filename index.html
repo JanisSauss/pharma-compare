@@ -267,14 +267,14 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
   <!-- HERO -->
   <div class="hero">
     <div class="eyebrow">
-      🇩🇪 🇵🇱 🇫🇷 🇮🇹 🇪🇸 🇳🇱 🇧🇪 🇦🇹 🇨🇿 🇱🇻 🇱🇹 🇪🇪
-      &nbsp;<span data-t="eyebrow">12 countries · price comparison</span>
+      🇩🇪 🇵🇱 🇫🇷 🇮🇹 🇪🇸 🇳🇱 🇧🇪 🇦🇹 🇨🇿 🇱🇻 🇱🇹 🇪🇪 🇸🇪 🇩🇰 🇫🇮 🇮🇪 🇵🇹 🇬🇷 🇭🇺 🇷🇴 🇧🇬 🇸🇰 🇸🇮 🇭🇷 🇲🇹 🇨🇾 🇱🇺
+      &nbsp;<span data-t="eyebrow">27 ES valstis · cenu salīdzināšana</span>
     </div>
     <h1 data-t="h1line1">Find the <em>cheapest</em><br>medicine in Europe</h1>
     <p class="sub" data-t="subtitle">Compare OTC medicine prices across 10 European countries. All prices shown in EUR.</p>
     <div class="stats">
-      <div class="st"><div class="sv"><span>12</span></div><div class="sl" data-t="st1">Countries</div></div>
-      <div class="st"><div class="sv"><span>36+</span></div><div class="sl" data-t="st2">Pharmacies</div></div>
+      <div class="st"><div class="sv"><span>27</span></div><div class="sl" data-t="st1">Countries</div></div>
+      <div class="st"><div class="sv"><span>80+</span></div><div class="sl" data-t="st2">Pharmacies</div></div>
       <div class="st"><div class="sv"><span>€</span></div><div class="sl" data-t="st3">All in EUR</div></div>
     </div>
   </div>
@@ -302,6 +302,21 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
       <button class="fb on" data-c="LV" onclick="tog(this)">🇱🇻<span class="cc">LV</span></button>
       <button class="fb on" data-c="LT" onclick="tog(this)">🇱🇹<span class="cc">LT</span></button>
       <button class="fb on" data-c="EE" onclick="tog(this)">🇪🇪<span class="cc">EE</span></button>
+      <button class="fb on" data-c="SE" onclick="tog(this)">🇸🇪<span class="cc">SE</span></button>
+      <button class="fb on" data-c="DK" onclick="tog(this)">🇩🇰<span class="cc">DK</span></button>
+      <button class="fb on" data-c="FI" onclick="tog(this)">🇫🇮<span class="cc">FI</span></button>
+      <button class="fb on" data-c="IE" onclick="tog(this)">🇮🇪<span class="cc">IE</span></button>
+      <button class="fb on" data-c="PT" onclick="tog(this)">🇵🇹<span class="cc">PT</span></button>
+      <button class="fb on" data-c="GR" onclick="tog(this)">🇬🇷<span class="cc">GR</span></button>
+      <button class="fb on" data-c="HU" onclick="tog(this)">🇭🇺<span class="cc">HU</span></button>
+      <button class="fb on" data-c="RO" onclick="tog(this)">🇷🇴<span class="cc">RO</span></button>
+      <button class="fb on" data-c="BG" onclick="tog(this)">🇧🇬<span class="cc">BG</span></button>
+      <button class="fb on" data-c="SK" onclick="tog(this)">🇸🇰<span class="cc">SK</span></button>
+      <button class="fb on" data-c="SI" onclick="tog(this)">🇸🇮<span class="cc">SI</span></button>
+      <button class="fb on" data-c="HR" onclick="tog(this)">🇭🇷<span class="cc">HR</span></button>
+      <button class="fb on" data-c="MT" onclick="tog(this)">🇲🇹<span class="cc">MT</span></button>
+      <button class="fb on" data-c="CY" onclick="tog(this)">🇨🇾<span class="cc">CY</span></button>
+      <button class="fb on" data-c="LU" onclick="tog(this)">🇱🇺<span class="cc">LU</span></button>
     </div>
   </div>
 
@@ -412,15 +427,15 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
 // ────────────────────────────────────
 const T={
   en:{
-    eyebrow:'12 countries · price comparison',
+    eyebrow:'27 EU countries · price comparison',
     h1line1:'Find the cheapest medicine in Europe',
-    subtitle:'Compare OTC medicine prices across 12 European countries. All prices shown in EUR.',
+    subtitle:'Compare OTC medicine prices across all 27 EU countries. All prices shown in EUR.',
     st1:'Countries',st2:'Pharmacies',st3:'All in EUR',
     placeholder:'Enter medicine name... (e.g. Onytec, Ibuprofen)',
     searchBtn:'Search',filterLbl:'Countries:',tryLbl:'Try searching',
     searching:'Searching pharmacies...',found:'results found',
     bestPriceLabel:'Best:',
-    currNote:'Non-EUR prices (PLN, CZK) have been converted to EUR for easy comparison.',
+    currNote:'Non-EUR prices (PLN, CZK, HUF, RON, BGN, SEK, DKK) have been converted to EUR for easy comparison.',
     colProd:'Product',colPharm:'Pharmacy',colPrice:'Price (EUR)',colUpd:'Updated',
     best:'Best',
     demoStrong:'Demo mode',demoTxt:'— prices are simulated. Live version scrapes real pharmacy websites.',
@@ -441,15 +456,15 @@ const T={
     timeAgo:(h)=>h<1?'just now':h<24?`${h}h ago`:`${Math.floor(h/24)}d ago`,
   },
   lv:{
-    eyebrow:'12 valstis · cenu salīdzināšana',
+    eyebrow:'27 ES valstis · cenu salīdzināšana',
     h1line1:'Atrodi lētākās zāles Eiropā',
-    subtitle:'Salīdzini bezrecepšu zāļu cenas 12 Eiropas valstīs. Visas cenas rādītas EUR.',
+    subtitle:'Salīdzini bezrecepšu zāļu cenas visās 27 ES valstīs. Visas cenas rādītas EUR.',
     st1:'Valstis',st2:'Aptiekas',st3:'Viss EUR',
     placeholder:'Ievadi zāļu nosaukumu... (piem. Onytec, Ibuprofēns)',
     searchBtn:'Meklēt',filterLbl:'Valstis:',tryLbl:'Mēģini meklēt',
     searching:'Meklē aptiekās...',found:'rezultāti atrasti',
     bestPriceLabel:'Labākā:',
-    currNote:'Cenas citās valūtās (PLN, CZK) ir pārvērstas EUR ērtākai salīdzināšanai.',
+    currNote:'Cenas citās valūtās (PLN, CZK, HUF, RON, BGN, SEK, DKK) ir pārvērstas EUR ērtākai salīdzināšanai.',
     colProd:'Produkts',colPharm:'Aptieka',colPrice:'Cena (EUR)',colUpd:'Atjaunots',
     best:'Labākā',
     demoStrong:'Demo režīms',demoTxt:'— cenas ir simulētas. Pilnā versija meklē reālās aptiekās.',
@@ -517,11 +532,25 @@ const PH={
   LV:['Mēness Aptieka','BENU LV','Apotheka LV'],
   LT:['Eurovaistine','Camelia','Gintarine Vaistine'],
   EE:['Apotheka EE','Benu EE','Südameapteek'],
+  SE:['Apoteket','Apotek Hjärtat','Lloyds Apotek'],
+  DK:['Apopro','Spar Apotek','Danmarks Apotek'],
+  FI:['Apteekki.fi','Yliopiston Apteekki','Terveystalo Apteekki'],
+  IE:['Boots Ireland','McCauley Pharmacy','Life Pharmacy'],
+  PT:['Farmácia.pt','Holon','Well\'s Farmácia'],
+  GR:['Fармакείο Online','Medihome','PharmacyGreece'],
+  HU:['Rossmann HU','Patika.hu','Benu HU'],
+  RO:['Catena','Sensiblu','Help Net'],
+  BG:['Remedium','Benu BG','Socpharmacy'],
+  SK:['Dr. Max SK','Benu SK','Pilulka SK'],
+  SI:['Lekarnar.com','Benu SI','Farmacevt SI'],
+  HR:['Ljekarna.hr','Benu HR','Phoenix HR'],
+  MT:['Pharmacy Malta','Tal-Isperjar','Barts Pharmacy'],
+  CY:['Farmakeia CY','Medihelp CY','Cyprus Pharmacy'],
+  LU:['Pharmacie Centrale','Benu LU','Luxapotek'],
 };
-const FLAGS={DE:'🇩🇪',PL:'🇵🇱',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',BE:'🇧🇪',AT:'🇦🇹',CZ:'🇨🇿',LV:'🇱🇻',LT:'🇱🇹',EE:'🇪🇪'};
-// Conversion rates to EUR
-const RATES={PLN:0.232,CZK:0.040,EUR:1};
-const CURRENCY={DE:'EUR',PL:'PLN',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR',BE:'EUR',AT:'EUR',CZ:'CZK',LV:'EUR',LT:'EUR',EE:'EUR'};
+const FLAGS={DE:'🇩🇪',PL:'🇵🇱',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',BE:'🇧🇪',AT:'🇦🇹',CZ:'🇨🇿',LV:'🇱🇻',LT:'🇱🇹',EE:'🇪🇪',SE:'🇸🇪',DK:'🇩🇰',FI:'🇫🇮',IE:'🇮🇪',PT:'🇵🇹',GR:'🇬🇷',HU:'🇭🇺',RO:'🇷🇴',BG:'🇧🇬',SK:'🇸🇰',SI:'🇸🇮',HR:'🇭🇷',MT:'🇲🇹',CY:'🇨🇾',LU:'🇱🇺'};
+const RATES={PLN:0.232,CZK:0.040,HUF:0.0026,RON:0.20,BGN:0.51,SEK:0.088,DKK:0.134,EUR:1};
+const CURRENCY={DE:'EUR',PL:'PLN',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR',BE:'EUR',AT:'EUR',CZ:'CZK',LV:'EUR',LT:'EUR',EE:'EUR',SE:'SEK',DK:'DKK',FI:'EUR',IE:'EUR',PT:'EUR',GR:'EUR',HU:'HUF',RO:'RON',BG:'BGN',SK:'EUR',SI:'EUR',HR:'EUR',MT:'EUR',CY:'EUR',LU:'EUR'};
 
 function genResults(q){
   const active=[...document.querySelectorAll('.fb.on')].map(b=>b.dataset.c);
