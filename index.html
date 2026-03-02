@@ -268,10 +268,10 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
   <div class="hero">
     <div class="eyebrow">
       🇩🇪 🇵🇱 🇫🇷 🇮🇹 🇪🇸 🇳🇱 🇧🇪 🇦🇹 🇨🇿 🇱🇻 🇱🇹 🇪🇪 🇸🇪 🇩🇰 🇫🇮 🇮🇪 🇵🇹 🇬🇷 🇭🇺 🇷🇴 🇧🇬 🇸🇰 🇸🇮 🇭🇷 🇲🇹 🇨🇾 🇱🇺
-      &nbsp;<span data-t="eyebrow">27 ES valstis · cenu salīdzināšana</span>
+      &nbsp;<span data-t="eyebrow">27 EU countries · price comparison</span>
     </div>
     <h1 data-t="h1line1">Find the <em>cheapest</em><br>medicine in Europe</h1>
-    <p class="sub" data-t="subtitle">Compare OTC medicine prices across 10 European countries. All prices shown in EUR.</p>
+    <p class="sub" data-t="subtitle">Compare OTC medicine prices across all 27 EU countries. All prices shown in EUR.</p>
     <div class="stats">
       <div class="st"><div class="sv"><span>27</span></div><div class="sl" data-t="st1">Countries</div></div>
       <div class="st"><div class="sv"><span>80+</span></div><div class="sl" data-t="st2">Pharmacies</div></div>
@@ -660,9 +660,6 @@ function doSearch(){
   });
 }
 
-document.getElementById('qi').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
-setLang('en');
-
 // ────────────────────────────────────
 // BACKEND API
 // ────────────────────────────────────
@@ -676,18 +673,22 @@ async function fetchRealResults(query) {
 }
 
 function realResultsToRows(results) {
+  const flags = {'LV':'🇱🇻','DE':'🇩🇪','PL':'🇵🇱','FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','BE':'🇧🇪','AT':'🇦🇹','CZ':'🇨🇿','LT':'🇱🇹','EE':'🇪🇪','SE':'🇸🇪','DK':'🇩🇰','FI':'🇫🇮','IE':'🇮🇪','PT':'🇵🇹','GR':'🇬🇷','HU':'🇭🇺','RO':'🇷🇴','BG':'🇧🇬','SK':'🇸🇰','SI':'🇸🇮','HR':'🇭🇷','MT':'🇲🇹','CY':'🇨🇾','LU':'🇱🇺'};
   return results.map(r => ({
     title: r.title,
     url: r.url,
     ph: r.source,
     country: r.country,
-    flag: {'LV':'🇱🇻','DE':'🇩🇪','PL':'🇵🇱','FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','BE':'🇧🇪','AT':'🇦🇹','CZ':'🇨🇿','LT':'🇱🇹','EE':'🇪🇪'}[r.country] || '🏳️',
+    flag: flags[r.country] || '🏳️',
     eurPrice: r.price,
     localPrice: r.price,
     cur: r.currency || 'EUR',
     hours: Math.floor((Date.now() - new Date(r.scrapedAt).getTime()) / 3600000) || 0,
   }));
 }
+
+document.getElementById('qi').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+setLang('en');
 
 </body>
 </html>
