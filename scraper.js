@@ -89,78 +89,97 @@ async function searchMenessAptieka(browser, query) {
 // ─── BENU Aptieka ─────────────────────────────────────────
 async function searchBenu(browser, query) {
   console.log(`[BENU] Mekle: "${query}"`);
+  
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36',
-    viewport: { width: 1440, height: 900 },
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    viewport: { width: 1366, height: 768 },
     locale: 'lv-LV',
+    extraHTTPHeaders: {
+      'Accept-Language': 'lv-LV,lv;q=0.9,en;q=0.8',
+    },
   });
+
+  await context.addCookies([
+    { name: 'cookieconsent', value: 'accepted', domain: '.benu.lv', path: '/' },
+  ]);
+
   const page = await context.newPage();
+  
+  // Paslepjam webdriver
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    window.chrome = { runtime: {} };
+  });
+
   const results = [];
 
   try {
-    // BENU izmanto /v/ URL struktura meklesanai
-    const searchUrl = `https://www.benu.lv/v/${encodeURIComponent(query.toLowerCase())}`;
-    console.log(`[BENU] URL: ${searchUrl}`);
-    
+    const searchUrl = `https://www.benu.lv/meklet?search=${encodeURIComponent(query)}`;
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await humanDelay(1000, 2000);
-    await acceptCookies(page);
-    await humanDelay(500, 1000);
-    await page.evaluate(() => window.scrollBy(0, 400));
-    await humanDelay(800, 1500);
+    await humanDelay(2000, 3000);
+
+    // Cookie
+    try {
+      const btn = page.locator('button:has-text("Piekr\u012btu"), button:has-text("Akcept\u0113t"), button:has-text("Labi")').first();
+      if (await btn.isVisible({ timeout: 3000 })) {
+        await btn.click({ force: true });
+        await humanDelay(1000, 1500);
+      }
+    } catch(e) {}
+
+    // Gaida produktu dinamisku ieladi
+    await humanDelay(3500, 4500);
+    await page.evaluate(() => window.scrollBy(0, 800));
+    await humanDelay(1000, 1500);
 
     const products = await page.evaluate(() => {
       const items = [];
-      // BENU produktu kartinas
-      const cards = document.querySelectorAll('a[href*="/e-aptieka/"]');
       const seen = new Set();
       
-      cards.forEach((el) => {
+      const allEls = document.querySelectorAll('[class*="product"], [class*="Product"], [class*="item"], article, li');
+      
+      allEls.forEach(el => {
         if (items.length >= 8) return;
-        const href = el.href;
-        if (seen.has(href) || !href.includes('/e-aptieka/')) return;
-        seen.add(href);
+        const text = el.innerText || '';
+        const priceMatch = text.match(/([0-9]+)[.,]([0-9]{2})\s*[€]/);
+        if (!priceMatch) return;
+        const price = parseFloat(priceMatch[1] + '.' + priceMatch[2]);
+        if (price < 0.5 || price > 150) return;
         
-        // Nosaukums no h2 vai teksda
-        const title = el.querySelector('h2, h3, [class*="name"], [class*="title"]')?.textContent?.trim() ||
-                      el.querySelector('img')?.alt;
+        const link = el.querySelector('a') && el.querySelector('a').href;
+        if (!link || seen.has(link) || !link.includes('benu.lv')) return;
+        seen.add(link);
         
-        // Cena - meklejam EUR vai € simbolu
-        const parent = el.closest('div, article, li') || el.parentElement;
-        const fullText = parent?.textContent || el.textContent;
-        const priceMatch = fullText.match(/(\d+)[.,](\d+)\s*[€E]/);
-        const price = priceMatch ? parseFloat(`${priceMatch[1]}.${priceMatch[2]}`) : 0;
+        const titleEl = el.querySelector('h2, h3, h4, [class*="name"], [class*="title"]');
+        const title = titleEl && titleEl.textContent.trim();
         
-        if (title && title.length > 3 && price > 0) {
-          items.push({ title: title.trim(), price, href });
+        if (title && title.length > 5) {
+          items.push({ title: title.substring(0, 100).trim(), price: price, href: link });
         }
       });
       return items;
     });
 
-    products.forEach(p => results.push({
-      title: p.title, price: p.price, currency: 'EUR',
-      url: p.href, source: 'BENU Aptieka', country: 'LV',
-      scrapedAt: new Date().toISOString(),
-    }));
+    products.forEach(function(p) {
+      results.push({
+        title: p.title, price: p.price, currency: 'EUR',
+        url: p.href, source: 'BENU Aptieka', country: 'LV',
+        scrapedAt: new Date().toISOString(),
+      });
+    });
 
-    console.log(`[BENU] ${results.length} rezultati`);
-
+    console.log('[BENU] ' + results.length + ' rezultati');
     if (results.length === 0) {
-      await page.screenshot({ path: 'debug-benu.png' });
-      console.log('[BENU] URL:', page.url());
-      // Parrada pirmos 500 simbolus lai saprastu strukturu
-      const text = await page.evaluate(() => document.body.innerText.substring(0, 500));
+      const text = await page.evaluate(() => document.body.innerText.substring(0, 600));
       console.log('[BENU] Lapa teksts:', text);
     }
   } catch (err) {
-    console.error(`[BENU] Kluda: ${err.message}`);
+    console.error('[BENU] Kluda: ' + err.message);
   }
   await context.close();
   return results;
 }
 
-// ─── Mekle visas aptiekas paraleli ────────────────────────
 async function searchAll(query) {
   const browser = await chromium.launch({
     headless: true,
