@@ -639,7 +639,27 @@ async function searchXXLNutrition(browser, query) {
   return results;
 }
 
+const QUERY_TRANSLATIONS = {
+  'kreatīns': 'creatine', 'kreatins': 'creatine',
+  'ibuprofēns': 'ibuprofen', 'ibuprofens': 'ibuprofen',
+  'paracetamols': 'paracetamol', 'paracetamōls': 'paracetamol',
+  'magnijs': 'magnesium', 'cinks': 'zinc', 'kalcijs': 'calcium',
+  'vitamīns': 'vitamin', 'vitamins': 'vitamin',
+  'proteīns': 'protein', 'proteins': 'protein',
+  'kolagēns': 'collagen', 'kolagens': 'collagen',
+  'omega': 'omega', 'melatonīns': 'melatonin', 'melatonins': 'melatonin',
+  'aspirīns': 'aspirin', 'aspirins': 'aspirin',
+};
+
 async function searchAll(query) {
+  // Translate LV terms to EN for supplement stores
+  const queryLower = query.toLowerCase().trim();
+  const translatedQuery = QUERY_TRANSLATIONS[queryLower] || query;
+  if (translatedQuery !== query) {
+    console.log('[Search] Tulkots: "' + query + '" -> "' + translatedQuery + '"');
+    query = translatedQuery;
+  }
+
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
