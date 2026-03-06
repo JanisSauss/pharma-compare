@@ -324,6 +324,72 @@ async function searchEuroaptieka(browser, query) {
   return results;
 }
 
+
+// ─── InternetAptieka ──────────────────────────────────────
+async function searchInternetAptieka(browser, query) {
+  console.log('[InternetAptieka] Mekle: "' + query + '"');
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36',
+    viewport: { width: 1366, height: 768 },
+    locale: 'lv-LV',
+  });
+  const page = await context.newPage();
+  const results = [];
+
+  try {
+    const searchUrl = 'https://internetaptieka.lv/?s=' + encodeURIComponent(query);
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await humanDelay(1500, 2500);
+    await acceptCookies(page);
+    await humanDelay(500, 1000);
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await humanDelay(1000, 1500);
+    await page.evaluate(() => window.scrollBy(0, 400));
+    await humanDelay(500, 800);
+
+    const products = await page.evaluate(() => {
+      const items = [];
+      const seen = new Set();
+
+      // InternetAptieka WooCommerce - standarta produktu selektori
+      document.querySelectorAll('.product, li.product, .woocommerce-loop-product, article.product').forEach(el => {
+        if (items.length >= 8) return;
+        const link = el.querySelector('a.woocommerce-loop-product__link, a[href*="internetaptieka"]');
+        const href = link && link.href;
+        if (!href || seen.has(href)) return;
+        seen.add(href);
+
+        const title = el.querySelector('h2.woocommerce-loop-product__title, .product-title, h2, h3')?.textContent?.trim()
+                   || el.querySelector('img')?.alt?.trim();
+        const priceEl = el.querySelector('.price .amount, .woocommerce-Price-amount, [class*="price"]');
+        const priceMatch = (priceEl?.textContent || el.textContent || '').match(/([0-9]+)[.,]([0-9]{2})/);
+        const price = priceMatch ? parseFloat(priceMatch[1] + '.' + priceMatch[2]) : 0;
+
+        if (title && title.length > 3 && price > 0.5 && price < 200) {
+          items.push({ title: title.substring(0, 100).trim(), price, href });
+        }
+      });
+      return items;
+    });
+
+    products.forEach(p => results.push({
+      title: p.title, price: p.price, currency: 'EUR',
+      url: p.href, source: 'InternetAptieka', country: 'LV',
+      scrapedAt: new Date().toISOString(),
+    }));
+    console.log('[InternetAptieka] ' + results.length + ' rezultati');
+
+    if (results.length === 0) {
+      const text = await page.evaluate(() => document.body.innerText.substring(0, 300));
+      console.log('[InternetAptieka] Lapa:', text);
+    }
+  } catch (err) {
+    console.error('[InternetAptieka] Kluda: ' + err.message);
+  }
+  await context.close();
+  return results;
+}
+
 async function searchAll(query) {
   const browser = await chromium.launch({
     headless: true,
@@ -332,13 +398,15 @@ async function searchAll(query) {
 
   try {
     // Apotheka + Euroaptieka pagaidam atslēgtas (JavaScript SPA - grutam scraipot)
-    const [m, b] = await Promise.allSettled([
+    const [m, b, i] = await Promise.allSettled([
       searchMenessAptieka(browser, query),
       searchBenu(browser, query),
+      searchInternetAptieka(browser, query),
     ]);
     const all = [
       ...(m.status === 'fulfilled' ? m.value : []),
       ...(b.status === 'fulfilled' ? b.value : []),
+      ...(i.status === 'fulfilled' ? i.value : []),
     ];
     return all.sort((a, b) => a.price - b.price);
   } finally {
