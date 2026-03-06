@@ -59,15 +59,17 @@ async function searchMenessAptieka(browser, query) {
     const products = await page.evaluate(() => {
       const items = [];
       const seen = new Set();
-      document.querySelectorAll('a[href*="/p/"]').forEach((el) => {
+      // Meklejam /p/ un /en/p/ saites (Onytec un citi var but /en/p/)
+      document.querySelectorAll('a[href*="/p/"], a[href*="/en/p/"]').forEach((el) => {
         if (items.length >= 8) return;
         const href = el.href;
         if (seen.has(href)) return;
         seen.add(href);
-        const title = el.querySelector('img')?.title || el.querySelector('img')?.alt;
+        const title = el.querySelector('img')?.title || el.querySelector('img')?.alt
+                   || el.querySelector('[class*="name"], [class*="title"]')?.textContent?.trim();
         const parent = el.closest('div, article, li');
-        const priceMatch = parent?.textContent?.match(/(\d+)[.,](\d+)\s*€/);
-        const price = priceMatch ? parseFloat(`${priceMatch[1]}.${priceMatch[2]}`) : 0;
+        const priceMatch = parent?.textContent?.match(/([0-9]+)[.,]([0-9]+)\s*\u20ac/);
+        const price = priceMatch ? parseFloat(priceMatch[1] + '.' + priceMatch[2]) : 0;
         if (title && title.length > 3 && price > 0) items.push({ title: title.trim(), price, href });
       });
       return items;
@@ -180,6 +182,148 @@ async function searchBenu(browser, query) {
   return results;
 }
 
+
+// ─── Apotheka ─────────────────────────────────────────────
+async function searchApotheka(browser, query) {
+  console.log(`[Apotheka] Mekle: "${query}"`);
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36',
+    viewport: { width: 1366, height: 768 },
+    locale: 'lv-LV',
+  });
+  const page = await context.newPage();
+  const results = [];
+
+  try {
+    // Apotheka Vue SPA - vajag gadit JS renderesanu
+    const searchUrl = 'https://www.apotheka.lv/produkti?search=' + encodeURIComponent(query);
+    await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 35000 });
+    await humanDelay(3000, 4000);
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await humanDelay(1500, 2000);
+
+    const products = await page.evaluate(() => {
+      const items = [];
+      const seen = new Set();
+      const selectors = [
+        '[class*="ProductCard"]', '[class*="product-card"]', '[class*="ProductItem"]',
+        '[class*="product-item"]', '[class*="ProductTile"]', 'article', '.v-card'
+      ];
+      for (const sel of selectors) {
+        document.querySelectorAll(sel).forEach(el => {
+          if (items.length >= 8) return;
+          const allLinks = el.querySelectorAll('a[href]');
+          const link = Array.from(allLinks).find(a => a.href.includes('apotheka.lv'));
+          const href = link && link.href;
+          if (!href || seen.has(href)) return;
+          seen.add(href);
+          const title = el.querySelector('[class*="name"], [class*="title"], [class*="Name"], h2, h3, h4')?.textContent?.trim()
+                     || el.querySelector('img')?.alt?.trim();
+          const priceMatch = (el.textContent || '').match(/(\d+)[.,](\d{2})\s*[€E]/);
+          const price = priceMatch ? parseFloat(priceMatch[1] + '.' + priceMatch[2]) : 0;
+          if (title && title.length > 3 && price > 0.5) {
+            items.push({ title: title.substring(0, 100).trim(), price, href });
+          }
+        });
+        if (items.length > 0) break;
+      }
+      return items;
+    });
+
+    products.forEach(p => results.push({
+      title: p.title, price: p.price, currency: 'EUR',
+      url: p.href, source: 'Apotheka', country: 'LV',
+      scrapedAt: new Date().toISOString(),
+    }));
+    console.log('[Apotheka] ' + results.length + ' rezultati');
+
+    if (results.length === 0) {
+      const text = await page.evaluate(() => document.body.innerText.substring(0, 300));
+      console.log('[Apotheka] Lapa:', text);
+    }
+  } catch (err) {
+    console.error('[Apotheka] Kluda: ' + err.message);
+  }
+  await context.close();
+  return results;
+}
+
+
+// ─── Euroaptieka ──────────────────────────────────────────
+async function searchEuroaptieka(browser, query) {
+  console.log('[Euroaptieka] Mekle: "' + query + '"');
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36',
+    viewport: { width: 1366, height: 768 },
+    locale: 'lv-LV',
+  });
+  const page = await context.newPage();
+  const results = [];
+
+  try {
+    // Euroaptieka - iet uz meklesanu tiesi, cookie dismiss ar keyboard ESC
+    const searchUrl = 'https://www.euroaptieka.lv/lv/meklet?q=' + encodeURIComponent(query);
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await humanDelay(2000, 3000);
+    // Meginam aizvest cookie baneri vairākos veidos
+    await page.keyboard.press('Escape');
+    await humanDelay(300, 500);
+    await page.evaluate(() => {
+      // Atrodi un noklikskini jebkuru cookie piekrišanas pogu
+      const texts = ['Piekrītu', 'Piekrītu visiem', 'Labi', 'Accept', 'OK', 'Agree'];
+      const all = Array.from(document.querySelectorAll('button, a, [role="button"], span, div'));
+      for (const t of texts) {
+        const el = all.find(e => e.textContent.trim() === t || e.textContent.trim().startsWith(t));
+        if (el) { el.click(); return; }
+      }
+      // Vai vienkārši noslep cookie overlay
+      const overlay = document.querySelector('[class*="cookie"], [class*="Cookie"], [class*="consent"], [class*="gdpr"], [id*="cookie"]');
+      if (overlay) overlay.style.display = 'none';
+    });
+    await humanDelay(1500, 2000);
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await humanDelay(2000, 3000);
+    await page.evaluate(() => window.scrollBy(0, 500));
+    await humanDelay(500, 1000);
+
+    const products = await page.evaluate(() => {
+      const items = [];
+      const seen = new Set();
+      document.querySelectorAll('.product-item, [class*="product-card"], article, [class*="catalog-item"]').forEach(el => {
+        if (items.length >= 8) return;
+        const link = el.querySelector('a');
+        const href = link && link.href;
+        if (!href || seen.has(href) || !href.includes('euroaptieka.lv')) return;
+        seen.add(href);
+        const title = el.querySelector('h2, h3, [class*="name"], [class*="title"]')?.textContent?.trim()
+                   || el.querySelector('img')?.alt;
+        const priceMatch = (el.textContent || '').match(/([0-9]+)[.,]([0-9]{2})\s*€/);
+        const price = priceMatch ? parseFloat(priceMatch[1] + '.' + priceMatch[2]) : 0;
+        if (title && title.length > 3 && price > 0) {
+          items.push({ title: title.substring(0, 100).trim(), price, href });
+        }
+      });
+      return items;
+    });
+
+    products.forEach(p => results.push({
+      title: p.title, price: p.price, currency: 'EUR',
+      url: p.href, source: 'Euroaptieka', country: 'LV',
+      scrapedAt: new Date().toISOString(),
+    }));
+    console.log('[Euroaptieka] ' + results.length + ' rezultati');
+
+    if (results.length === 0) {
+      const text = await page.evaluate(() => document.body.innerText.substring(0, 200));
+      console.log('[Euroaptieka] Lapa:', text);
+    }
+  } catch (err) {
+    console.error('[Euroaptieka] Kluda: ' + err.message);
+  }
+  await context.close();
+  return results;
+}
+
 async function searchAll(query) {
   const browser = await chromium.launch({
     headless: true,
@@ -187,6 +331,7 @@ async function searchAll(query) {
   });
 
   try {
+    // Apotheka + Euroaptieka pagaidam atslēgtas (JavaScript SPA - grutam scraipot)
     const [m, b] = await Promise.allSettled([
       searchMenessAptieka(browser, query),
       searchBenu(browser, query),
