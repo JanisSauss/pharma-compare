@@ -385,8 +385,8 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
       <thead>
         <tr>
           <th>#</th>
-          <th data-t="colProd">Product</th>
-          <th data-t="colPharm">Source</th>
+          <th style="min-width:0" data-t="colProd">Product</th>
+          <th class="hm" data-t="colPharm">Source</th>
           <th class="r" data-t="colPrice">Price (EUR)</th>
           <th class="r hm2" data-t="colUnit">Per unit</th>
           <th class="r hm thm" data-t="colUpd">Updated</th>
@@ -681,7 +681,7 @@ function renderResults(rows, q, t) {
     tr.innerHTML=`
       <td class="trk">${i+1}</td>
       <td><a class="pl" href="${r.url}" target="_blank">${r.title}</a></td>
-      <td><div class="sc">
+      <td class="hm"><div class="sc">
         <span>${r.flag}</span>
         <span class="sn">${r.ph}</span>
         <span class="ctag">${r.country}</span>
