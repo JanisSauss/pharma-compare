@@ -355,11 +355,7 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
     </table>
   </div>
 
-  <!-- DEMO NOTE -->
-  <div class="dpill" id="dp">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-    <span><strong data-t="demoStrong">Demo mode</strong> <span data-t="demoTxt">— prices are simulated. Live version scrapes real pharmacy websites.</span></span>
-  </div>
+
 
   <!-- EMPTY -->
   <div class="empty" id="em">
@@ -588,7 +584,7 @@ function doSearch(){
   if(!q)return;
   const t=T[lang];
 
-  ['tc','rb','dp','em'].forEach(id=>document.getElementById(id).classList.remove('v'));
+  ['tc','rb','em'].forEach(id=>document.getElementById(id).classList.remove('v'));
   document.getElementById('cn').classList.remove('v');
   document.getElementById('status').className='v';
   document.getElementById('sb').disabled=true;
@@ -659,7 +655,7 @@ function renderResults(rows, q, t) {
   });
 
   document.getElementById('tc').classList.add('v');
-  document.getElementById('dp').classList.add('v');
+  
 }
 
 // ── Backend API ──
