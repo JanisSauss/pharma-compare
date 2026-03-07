@@ -677,30 +677,33 @@ function parseUnitPrice(title, price) {
   if (!title || !price) return '';
   const t = title.toLowerCase();
   
-  // Patterns: 300g, 500ml, 90kaps, 100tab, 60caps, N30, x30
   const patterns = [
-    { re: /(\d+(?:[.,]\d+)?)\s*kg/,     unit: 'g',   mult: 1000 },
-    { re: /(\d+(?:[.,]\d+)?)\s*g/,      unit: 'g',   mult: 1 },
-    { re: /(\d+(?:[.,]\d+)?)\s*l/,      unit: 'ml',  mult: 1000 },
-    { re: /(\d+(?:[.,]\d+)?)\s*ml/,     unit: 'ml',  mult: 1 },
-    { re: /(\d+(?:[.,]\d+)?)\s*mg/,     unit: 'mg',  mult: 1 },
-    { re: /[nx×]\s*(\d+)/i,             unit: 'gab', mult: 1 },
-    { re: /(\d+)\s*(?:kaps|caps|cap|kap)/i, unit: 'kaps', mult: 1 },
-    { re: /(\d+)\s*(?:tab|tabl|tablets?)/i, unit: 'tab', mult: 1 },
-    { re: /(\d+)\s*(?:gab|pcs|pieces?)/i,   unit: 'gab', mult: 1 },
+    { re: /\((\d+(?:[.,]\d+)?)\s*g\)/, unit: 'g', mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*kg\b/, unit: 'g', mult: 1000 },
+    { re: /,\s*(\d+(?:[.,]\d+)?)\s*g\b/, unit: 'g', mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*g\b/, unit: 'g', mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*ml\b/, unit: 'ml', mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*l\b/, unit: 'ml', mult: 1000 },
+    { re: /,\s*(\d+)\s*gab\./, unit: 'gab', mult: 1 },
+    { re: /(\d+)\s*gab\./, unit: 'gab', mult: 1 },
+    { re: /,\s*(\d+)\s*(?:kaps|caps)\b/i, unit: 'kaps', mult: 1 },
+    { re: /(\d+)\s*(?:kaps|caps)\b/i, unit: 'kaps', mult: 1 },
+    { re: /,\s*(\d+)\s*(?:tab|tabl)\b/i, unit: 'tab', mult: 1 },
+    { re: /(\d+)\s*(?:tab|tabl)\b/i, unit: 'tab', mult: 1 },
+    { re: /[nx×]\s*(\d+)\b/i, unit: 'gab', mult: 1 },
   ];
   
   for (const p of patterns) {
     const m = t.match(p.re);
     if (m) {
       const qty = parseFloat(m[1].replace(',', '.')) * p.mult;
-      if (qty > 0) {
-        const unitPrice = price / qty;
-        // Format nicely
-        let formatted;
-        if (unitPrice < 0.01) formatted = (unitPrice * 100).toFixed(2) + ' c';
-        else formatted = '€' + unitPrice.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
-        return formatted + '/' + p.unit;
+      if (qty > 0 && qty < 100000) {
+        const up = price / qty;
+        let fmt;
+        if (up >= 1) fmt = '€' + up.toFixed(2);
+        else if (up >= 0.01) fmt = '€' + up.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+        else fmt = '€' + up.toFixed(4).replace(/0+$/, '');
+        return fmt + '/' + p.unit;
       }
     }
   }
