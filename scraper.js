@@ -684,7 +684,14 @@ async function searchAll(query) {
         console.error('[' + scraper.name + '] Kluda:', e.message);
       }
     }
-    return results.sort((a, b) => a.price - b.price);
+    // Filter results by relevance - title must contain at least one search word
+    const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const filtered = queryWords.length > 0 ? results.filter(r => {
+      const title = (r.title || '').toLowerCase();
+      return queryWords.some(w => title.includes(w));
+    }) : results;
+    
+    return filtered.sort((a, b) => a.price - b.price);
   } finally {
     await browser.close();
   }
