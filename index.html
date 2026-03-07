@@ -572,56 +572,100 @@ function doSearch(){
   document.getElementById('status').className='v';
   document.getElementById('sb').disabled=true;
 
-  setTimeout(()=>{
+  fetchRealResults(q).then(realResults => {
     document.getElementById('status').className='';
     document.getElementById('sb').disabled=false;
-    document.getElementById('cb').style.display='none'; currentAbortController=null;
+    document.getElementById('cb').style.display='none';
+    currentAbortController=null;
 
+    let rows;
+    if (realResults && realResults.length > 0) {
+      rows = realResultsToRows(realResults);
+    } else {
+      rows = genResults(q);
+    }
+    renderResults(rows, q, t);
+  }).catch(err => {
+    if (err.name === 'AbortError') return;
+    document.getElementById('status').className='';
+    document.getElementById('sb').disabled=false;
+    document.getElementById('cb').style.display='none';
+    currentAbortController=null;
     const rows=genResults(q);
-    if(!rows.length){document.getElementById('em').classList.add('v');return;}
+    renderResults(rows, q, t);
+  });
+}
 
-    const hasNonEUR=rows.some(r=>r.cur!=='EUR');
-    if(hasNonEUR) document.getElementById('cn').classList.add('v');
+function renderResults(rows, q, t) {
+  if(!rows.length){document.getElementById('em').classList.add('v');return;}
 
-    const best=rows[0];
-    document.getElementById('rc').textContent=rows.length;
-    document.getElementById('bpv').textContent=`€${best.eurPrice.toFixed(2)} ${best.flag}`;
-    document.getElementById('rb').classList.add('v');
+  const hasNonEUR=rows.some(r=>r.cur!=='EUR');
+  if(hasNonEUR) document.getElementById('cn').classList.add('v');
 
-    const tbody=document.getElementById('tb');
-    tbody.innerHTML='';
-    rows.forEach((r,i)=>{
-      const isBest=i===0;
-      const tr=document.createElement('tr');
-      if(isBest) tr.classList.add('br');
-      tr.style.animationDelay=`${Math.min(i*0.035,.2)}s`;
+  const best=rows[0];
+  document.getElementById('rc').textContent=rows.length;
+  document.getElementById('bpv').textContent=`€${best.eurPrice.toFixed(2)} ${best.flag}`;
+  document.getElementById('rb').classList.add('v');
 
-      const origNote=r.cur!=='EUR'
-        ?`<div class="po">${r.localPrice.toFixed(2)} ${r.cur}</div>`:'' ;
-      const btag=isBest?`<span class="btag">✦ ${t.best}</span>`:'';
-      const timeStr=t.timeAgo(r.hours);
+  const tbody=document.getElementById('tb');
+  tbody.innerHTML='';
+  rows.forEach((r,i)=>{
+    const isBest=i===0;
+    const tr=document.createElement('tr');
+    if(isBest) tr.classList.add('br');
+    tr.style.animationDelay=`${Math.min(i*0.035,.2)}s`;
 
-      tr.innerHTML=`
-        <td class="trk">${i+1}</td>
-        <td><a class="pl" href="${r.url}" target="_blank">${r.title}</a></td>
-        <td><div class="sc">
-          <span>${r.flag}</span>
-          <span class="sn">${r.ph}</span>
-          <span class="ctag">${r.country}</span>
-        </div></td>
-        <td class="ptd">
-          <div class="pm">€${r.eurPrice.toFixed(2)}</div>
-          ${origNote}${btag}
-        </td>
-        <td class="ttime hm">${timeStr}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+    const origNote=r.cur!=='EUR'
+      ?`<div class="po">${r.localPrice.toFixed(2)} ${r.cur}</div>`:'';
+    const btag=isBest?`<span class="btag">✦ ${t.best}</span>`:'';
+    const timeStr=t.timeAgo(r.hours);
 
-    document.getElementById('tc').classList.add('v');
-    document.getElementById('dp').classList.add('v');
+    tr.innerHTML=`
+      <td class="trk">${i+1}</td>
+      <td><a class="pl" href="${r.url}" target="_blank">${r.title}</a></td>
+      <td><div class="sc">
+        <span>${r.flag}</span>
+        <span class="sn">${r.ph}</span>
+        <span class="ctag">${r.country}</span>
+      </div></td>
+      <td class="ptd">
+        <div class="pm">€${r.eurPrice.toFixed(2)}</div>
+        ${origNote}${btag}
+      </td>
+      <td class="ttime hm">${timeStr}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-  },900+Math.random()*600);
+  document.getElementById('tc').classList.add('v');
+  document.getElementById('dp').classList.add('v');
+}
+
+// ── Backend API ──
+const BACKEND_URL = 'https://pharma-compare-production.up.railway.app';
+
+async function fetchRealResults(query) {
+  currentAbortController = new AbortController();
+  document.getElementById('cb').style.display = 'block';
+  const res = await fetch(`${BACKEND_URL}/search?q=${encodeURIComponent(query)}`, { signal: currentAbortController.signal });
+  if (!res.ok) throw new Error(`Backend kļūda: ${res.status}`);
+  const data = await res.json();
+  return data.results || [];
+}
+
+function realResultsToRows(results) {
+  const flags = {'LV':'🇱🇻','DE':'🇩🇪','PL':'🇵🇱','FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','BE':'🇧🇪','AT':'🇦🇹','CZ':'🇨🇿','LT':'🇱🇹','EE':'🇪🇪','EU':'🌍'};
+  return results.map(r => ({
+    title: r.title,
+    url: r.url,
+    ph: r.source,
+    country: r.country,
+    flag: flags[r.country] || '🏳️',
+    eurPrice: r.price,
+    localPrice: r.price,
+    cur: r.currency || 'EUR',
+    hours: Math.floor((Date.now() - new Date(r.scrapedAt).getTime()) / 3600000) || 0,
+  }));
 }
 
 // ── Cancel search ──
