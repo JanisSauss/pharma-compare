@@ -448,9 +448,9 @@ async function searchIherb(browser, query) {
       // Walk all /pr/ links, find unique product URLs (skip review anchors)
       document.querySelectorAll('a[href*="/pr/"]').forEach(a => {
         if (items.length >= 8) return;
-        const href = a.href.split('#')[0]; // strip #reviews etc
+        let href = a.href.split('#')[0]; // strip #reviews etc
+        href = href.replace('https://nl.iherb.com', 'https://www.iherb.com').replace('https://de.iherb.com', 'https://www.iherb.com');
         if (!href || seen.has(href) || href.includes('pressrelease')) return;
-        if (!href.startsWith('https://www.iherb.com')) return;
         seen.add(href);
         // Walk up to find container with price
         let el = a;
@@ -667,22 +667,24 @@ async function searchAll(query) {
   });
 
   try {
-    // Apotheka + Euroaptieka pagaidam atslēgtas (JavaScript SPA - grutam scraipot)
-    const [m, b, i, ih, vit] = await Promise.allSettled([
-      searchMenessAptieka(browser, query),
-      searchBenu(browser, query),
-      searchInternetAptieka(browser, query),
-      searchIherb(browser, query),
-      searchVitaminsLv(browser, query),
-    ]);
-    const all = [
-      ...(m.status === 'fulfilled' ? m.value : []),
-      ...(b.status === 'fulfilled' ? b.value : []),
-      ...(i.status === 'fulfilled' ? i.value : []),
-      ...(ih.status === 'fulfilled' ? ih.value : []),
-      ...(vit.status === 'fulfilled' ? vit.value : []),
+    // Sequential to save RAM on Railway
+    const results = [];
+    const scrapers = [
+      { name: 'MenessAptieka', fn: searchMenessAptieka },
+      { name: 'BENU', fn: searchBenu },
+      { name: 'InternetAptieka', fn: searchInternetAptieka },
+      { name: 'iHerb', fn: searchIherb },
+      { name: 'Vitamins.lv', fn: searchVitaminsLv },
     ];
-    return all.sort((a, b) => a.price - b.price);
+    for (const scraper of scrapers) {
+      try {
+        const r = await scraper.fn(browser, query);
+        results.push(...r);
+      } catch(e) {
+        console.error('[' + scraper.name + '] Kluda:', e.message);
+      }
+    }
+    return results.sort((a, b) => a.price - b.price);
   } finally {
     await browser.close();
   }
