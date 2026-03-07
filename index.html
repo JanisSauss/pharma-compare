@@ -704,7 +704,7 @@ async function sendSuggestion() {
   btn.disabled = true;
   btn.textContent = '...';
   try {
-    await fetch('https://formspree.io/f/xvzwojkw', {
+    await fetch('https://formspree.io/f/maqpyggv', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ suggestion: val, email: document.getElementById('suggest-email').value.trim(), lang: lang })
