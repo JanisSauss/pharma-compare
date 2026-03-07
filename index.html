@@ -75,7 +75,7 @@
   --txt:#dde4f0;--txt2:rgba(255,255,255,.55);--txt3:rgba(255,255,255,.28);--txt4:rgba(255,255,255,.14);
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh}
 
 /* ORBS */
 .orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(130px)}
@@ -381,7 +381,8 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
 
   <!-- TABLE -->
   <div class="tcard" id="tc">
-    <table>
+    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:6px;display:none" id="swipe-hint">← swipe for more →</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;width:100%"><table style="min-width:520px">
       <thead>
         <tr>
           <th>#</th>
@@ -393,7 +394,7 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
         </tr>
       </thead>
       <tbody id="tb"></tbody>
-    </table>
+    </table></div>
   </div>
 
 
