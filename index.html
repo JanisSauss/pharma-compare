@@ -402,9 +402,12 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
       <strong style="color:var(--txt1);font-size:15px" data-t="expandTitle">We're actively expanding!</strong>
     </div>
     <p style="color:var(--txt2);font-size:13px;line-height:1.6;margin:0 0 16px" data-t="expandTxt">Currently live in 🇱🇻 Latvia + 🌍 1 international source. Lithuania &amp; Estonia coming next. Have a suggestion for a store or country to add?</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input id="suggest-input" type="text" placeholder="e.g. Lithuania, Estonia, Germany..." style="flex:1;min-width:180px;background:var(--bg3,#161b29);border:1px solid var(--b2);border-radius:10px;padding:9px 14px;color:var(--txt1);font-size:13px;outline:none;font-family:inherit">
-      <button onclick="sendSuggestion()" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer" data-t="expandBtn">Send</button>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="suggest-input" type="text" placeholder="e.g. Lithuania, Estonia, Germany..." style="flex:1;min-width:180px;background:var(--bg3,#161b29);border:1px solid var(--b2);border-radius:10px;padding:9px 14px;color:var(--txt1);font-size:13px;outline:none;font-family:inherit">
+        <input id="suggest-email" type="email" placeholder="Your email (optional)" style="flex:1;min-width:180px;background:var(--bg3,#161b29);border:1px solid var(--b2);border-radius:10px;padding:9px 14px;color:var(--txt1);font-size:13px;outline:none;font-family:inherit">
+      </div>
+      <button onclick="sendSuggestion()" style="align-self:flex-start;background:#4ecca3;color:#000;border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;min-width:90px" data-t="expandBtn">Send</button>
     </div>
     <div id="suggest-thanks" style="display:none;color:var(--green);font-size:13px;margin-top:10px">✓ <span data-t="expandThanks">Thank you! We'll consider your suggestion.</span></div>
   </div>
@@ -688,10 +691,11 @@ async function sendSuggestion() {
     await fetch('https://formspree.io/f/xvzwojkw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ suggestion: val, lang: lang, userAgent: navigator.userAgent.substring(0,80) })
+      body: JSON.stringify({ suggestion: val, email: document.getElementById('suggest-email').value.trim(), lang: lang })
     });
   } catch(e) { /* fail silently */ }
   document.getElementById('suggest-input').value = '';
+  document.getElementById('suggest-email').value = '';
   document.getElementById('suggest-thanks').style.display = 'block';
   btn.disabled = false;
   btn.textContent = T[lang].expandBtn || 'Send';
