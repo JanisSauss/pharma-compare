@@ -99,7 +99,8 @@ nav{position:relative;z-index:20;display:flex;justify-content:space-between;alig
   background:var(--bluedim);border:1px solid rgba(90,180,212,.2);
   font-size:11px;color:var(--blue);font-family:'JetBrains Mono',monospace}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2.2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+#swipe-hint{display:block!important}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}} pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 
 /* HERO */
 .wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:60px 24px 90px}
@@ -171,7 +172,8 @@ h1 em{font-style:normal;color:var(--accent)}
 .spin{display:inline-block;width:18px;height:18px;
   border:2px solid rgba(78,204,163,.15);border-top-color:var(--accent);
   border-radius:50%;animation:sp .75s linear infinite;vertical-align:middle;margin-right:10px}
-@keyframes sp{to{transform:rotate(360deg)}}
+#swipe-hint{display:block!important}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}} sp{to{transform:rotate(360deg)}}
 
 /* RESULTS HEADER */
 .rbar{display:none;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 2px}
@@ -200,7 +202,8 @@ th{text-align:left;padding:12px 18px;font-size:10px;font-weight:500;
 th.r{text-align:right}
 tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background .12s;
   animation:fr .3s ease both}
-@keyframes fr{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+#swipe-hint{display:block!important}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}} fr{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,.02)}
 tbody tr.br{background:rgba(78,204,163,.04)}
@@ -292,7 +295,7 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
 @media(max-width:700px){
   nav{padding:14px 18px}
   .nav-tag{display:none}
-  .ttime,.hm,.thm,.hm2{display:none}
+  .ttime,.hm,.thm{display:none}
   td{padding:10px 8px}
   th{padding:8px 8px}
   .stats{max-width:360px}
@@ -382,7 +385,7 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
 
   <!-- TABLE -->
   <div class="tcard" id="tc">
-    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:6px;display:none" id="swipe-hint">← swipe for more →</div>
+    <div id="swipe-hint" style="display:none;text-align:center;margin-bottom:8px;font-size:12px;font-weight:600;color:#00e5a0;letter-spacing:0.05em;animation:pulse 2s infinite">⟵ swipe to see price per unit ⟶</div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;width:100%"><table style="min-width:520px">
       <thead>
         <tr>
