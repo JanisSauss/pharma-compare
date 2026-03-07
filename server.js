@@ -11,11 +11,36 @@ app.use(express.json());
 const cache = {};
 const CACHE_DURATION = 60 * 60 * 1000; // 1 stunda
 
+
+// Rate limiting - max 10 requests per IP per minute
+const requestCounts = {};
+function rateLimit(req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+  if (!requestCounts[ip]) requestCounts[ip] = [];
+  // Keep only requests in last 60 seconds
+  requestCounts[ip] = requestCounts[ip].filter(t => now - t < 60000);
+  if (requestCounts[ip].length >= 10) {
+    return res.status(429).json({ error: 'Too many requests. Please wait a minute.' });
+  }
+  requestCounts[ip].push(now);
+  next();
+}
+
+// Clean up old IPs every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const ip in requestCounts) {
+    requestCounts[ip] = requestCounts[ip].filter(t => now - t < 60000);
+    if (requestCounts[ip].length === 0) delete requestCounts[ip];
+  }
+}, 5 * 60 * 1000);
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'PharmaCompare darbojas!' });
 });
 
-app.get('/search', async (req, res) => {
+app.get('/search', rateLimit, async (req, res) => {
   const query = (req.query.q || '').trim();
   if (query.length < 2) return res.status(400).json({ error: 'Parak iss vaicajums' });
 
