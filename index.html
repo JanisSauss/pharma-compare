@@ -348,6 +348,7 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;
           <th data-t="colProd">Product</th>
           <th data-t="colPharm">Source</th>
           <th class="r" data-t="colPrice">Price (EUR)</th>
+          <th class="r hm2" data-t="colUnit">Per unit</th>
           <th class="r hm thm" data-t="colUpd">Updated</th>
         </tr>
       </thead>
@@ -443,7 +444,7 @@ const T={
     searching:'Searching all sources...',found:'results found',
     bestPriceLabel:'Best:',
     currNote:'Non-EUR prices (PLN, CZK) have been converted to EUR for easy comparison.',
-    colProd:'Product',colPharm:'Source',colPrice:'Price (EUR)',colUpd:'Updated',
+    colProd:'Product',colPharm:'Source',colPrice:'Price (EUR)',colUnit:'Per unit',colUpd:'Updated',
     best:'Best',
     demoStrong:'Demo mode',demoTxt:'— prices are simulated. Live version scrapes real pharmacy websites.',
     emTitle:'No results found',emTxt:'Try a different name or select more countries.',
@@ -472,7 +473,7 @@ const T={
     searching:'Meklē visos avotos...',found:'rezultāti atrasti',
     bestPriceLabel:'Labākā:',
     currNote:'Cenas citās valūtās (PLN, CZK) ir pārvērstas EUR ērtākai salīdzināšanai.',
-    colProd:'Produkts',colPharm:'Avots',colPrice:'Cena (EUR)',colUpd:'Atjaunots',
+    colProd:'Produkts',colPharm:'Avots',colPrice:'Cena (EUR)',colUnit:'Par vienību',colUpd:'Atjaunots',
     best:'Labākā',
     demoStrong:'Demo režīms',demoTxt:'— cenas ir simulētas. Pilnā versija meklē reālās aptiekās.',
     emTitle:'Nekas nav atrasts',emTxt:'Mēģini citu nosaukumu vai izvēlies vairāk valstu.',
@@ -649,6 +650,7 @@ function renderResults(rows, q, t) {
         <div class="pm">€${r.eurPrice.toFixed(2)}</div>
         ${origNote}${btag}
       </td>
+      <td class="r hm2" style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">${r.unitPrice || '—'}</td>
       <td class="ttime hm">${timeStr}</td>
     `;
     tbody.appendChild(tr);
@@ -670,6 +672,41 @@ async function fetchRealResults(query) {
   return data.results || [];
 }
 
+
+function parseUnitPrice(title, price) {
+  if (!title || !price) return '';
+  const t = title.toLowerCase();
+  
+  // Patterns: 300g, 500ml, 90kaps, 100tab, 60caps, N30, x30
+  const patterns = [
+    { re: /(\d+(?:[.,]\d+)?)\s*kg/,     unit: 'g',   mult: 1000 },
+    { re: /(\d+(?:[.,]\d+)?)\s*g/,      unit: 'g',   mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*l/,      unit: 'ml',  mult: 1000 },
+    { re: /(\d+(?:[.,]\d+)?)\s*ml/,     unit: 'ml',  mult: 1 },
+    { re: /(\d+(?:[.,]\d+)?)\s*mg/,     unit: 'mg',  mult: 1 },
+    { re: /[nx×]\s*(\d+)/i,             unit: 'gab', mult: 1 },
+    { re: /(\d+)\s*(?:kaps|caps|cap|kap)/i, unit: 'kaps', mult: 1 },
+    { re: /(\d+)\s*(?:tab|tabl|tablets?)/i, unit: 'tab', mult: 1 },
+    { re: /(\d+)\s*(?:gab|pcs|pieces?)/i,   unit: 'gab', mult: 1 },
+  ];
+  
+  for (const p of patterns) {
+    const m = t.match(p.re);
+    if (m) {
+      const qty = parseFloat(m[1].replace(',', '.')) * p.mult;
+      if (qty > 0) {
+        const unitPrice = price / qty;
+        // Format nicely
+        let formatted;
+        if (unitPrice < 0.01) formatted = (unitPrice * 100).toFixed(2) + ' c';
+        else formatted = '€' + unitPrice.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+        return formatted + '/' + p.unit;
+      }
+    }
+  }
+  return '';
+}
+
 function realResultsToRows(results) {
   const flags = {'LV':'🇱🇻','DE':'🇩🇪','PL':'🇵🇱','FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','BE':'🇧🇪','AT':'🇦🇹','CZ':'🇨🇿','LT':'🇱🇹','EE':'🇪🇪','EU':'🌍'};
   return results.map(r => ({
@@ -680,6 +717,7 @@ function realResultsToRows(results) {
     flag: flags[r.country] || '🏳️',
     eurPrice: r.price,
     localPrice: r.price,
+    unitPrice: parseUnitPrice(r.title, r.price),
     cur: r.currency || 'EUR',
     hours: Math.floor((Date.now() - new Date(r.scrapedAt).getTime()) / 3600000) || 0,
   }));
