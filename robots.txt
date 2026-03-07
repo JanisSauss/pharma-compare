@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pharma-compare-o2lj.vercel.app/sitemap.xml
