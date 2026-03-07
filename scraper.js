@@ -450,6 +450,7 @@ async function searchIherb(browser, query) {
         if (items.length >= 8) return;
         const href = a.href.split('#')[0]; // strip #reviews etc
         if (!href || seen.has(href) || href.includes('pressrelease')) return;
+        if (!href.startsWith('https://www.iherb.com')) return;
         seen.add(href);
         // Walk up to find container with price
         let el = a;
